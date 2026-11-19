@@ -5,7 +5,7 @@ const SUPA_URL = 'https://furzmizxdxhdvapxhzje.supabase.co';
 const SUPA_KEY = 'sb_publishable_BXCIrfns7IRAqaV0-8B2rg_BXT_qav0'; // public key; data is protected by RLS
 const CENTER = [69.2797, 41.3111];
 const MAP_STYLE = 'https://tiles.openfreemap.org/styles/positron';
-const VERSION = 'pilot-0.1';
+const VERSION = 'pilot-0.2';
 
 const sb = window.supabase.createClient(SUPA_URL, SUPA_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
 
@@ -703,7 +703,9 @@ async function profileTab() {
     <h2>${t('p_settings')}</h2>
     <div class="card"><div>${t('p_language')}</div><div class="row" style="gap:8px;margin:8px 0">${[['uz', 'Oʻz'], ['ru', 'Ру'], ['en', 'En']].map(([k, n]) => `<button class="choice ${S.lang === k ? 'sel' : ''}" style="margin:0;text-align:center" data-l="${k}">${n}</button>`).join('')}</div>
       <div class="toggle"><span>${t('p_lite')}</span><label class="switch"><input type="checkbox" id="lite" ${S.lite ? 'checked' : ''}><span></span></label></div></div>
-    <button class="btn secondary" id="rules">${t('p_rules')}</button><p></p>
+    <button class="btn secondary" id="rules">${t('p_rules')}</button>
+    <h2>${t('p_privacy')}</h2>
+    <div class="card"><button class="btn secondary" id="export">${t('p_my_data')}</button><p></p><button class="btn ghost" id="delete" style="color:var(--l4)">${t('p_delete')}</button></div>
     <button class="btn ghost" id="logout">${t('p_logout')}</button>
     <p class="muted" style="text-align:center">Yoʻldosh ${VERSION}</p>`;
   scr.querySelectorAll('[data-l]').forEach(b => b.onclick = async () => { S.lang = b.dataset.l; LS.set('lang', S.lang); document.documentElement.lang = S.lang; try { await sb.from('profiles').update({ lang: S.lang }).eq('id', S.user.id); } catch {} mainShell('profile'); });
@@ -720,6 +722,20 @@ async function profileTab() {
         if (r && r.ok) { toast(t('st_saved')); mainShell('profile'); } else if (r && r.error === 'wait') toast(t('p_route_wait', { n: r.days })); else toast(t('st_error'));
       });
     });
+  };
+  $('#export').onclick = async () => {
+    try {
+      const data = await rpc('export_me');
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'yoldosh-data.json';
+      document.body.appendChild(a); a.click(); a.remove();
+    } catch { toast(t('st_error')); }
+  };
+  $('#delete').onclick = async () => {
+    if (!confirm(t('p_delete_confirm'))) return;
+    try { await rpc('delete_me'); } catch { toast(t('st_error')); return; }
+    try { await sb.auth.signOut(); } catch {}
+    Object.keys(localStorage).filter(k => k.startsWith('yd_') || k.startsWith('sb-')).forEach(k => localStorage.removeItem(k)); location.reload();
   };
   $('#logout').onclick = async () => {
     if (!confirm(t('p_logout_warn'))) return;
