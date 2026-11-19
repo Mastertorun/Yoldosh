@@ -1,0 +1,16 @@
+{
+  "name": "Yoʻldosh — yoʻlovchilar ilovasi",
+  "short_name": "Yoʻldosh",
+  "description": "Toshkent avtobus yoʻlovchilari: tirbandlik belgilari, ovoz va oʻyin",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F6F4EF",
+  "theme_color": "#0E7C66",
+  "lang": "uz",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
