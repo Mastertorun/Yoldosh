@@ -1,5 +1,5 @@
 // Yo'ldosh service worker: app shell offline, network-first for data
-const CACHE = 'yoldosh-v2';
+const CACHE = 'yoldosh-v3';
 const SHELL = ['./', 'index.html', 'app.js', 'i18n.js', 'style.css', 'icon.svg', 'manifest.webmanifest', 'vendor/maplibre-gl.js', 'vendor/maplibre-gl.css', 'vendor/supabase.js'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });

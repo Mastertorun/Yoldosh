@@ -5,7 +5,7 @@ const SUPA_URL = 'https://furzmizxdxhdvapxhzje.supabase.co';
 const SUPA_KEY = 'sb_publishable_BXCIrfns7IRAqaV0-8B2rg_BXT_qav0'; // public key; data is protected by RLS
 const CENTER = [69.2797, 41.3111];
 const MAP_STYLE = 'https://tiles.openfreemap.org/styles/positron';
-const VERSION = 'pilot-0.2';
+const VERSION = 'pilot-0.3';
 
 const sb = window.supabase.createClient(SUPA_URL, SUPA_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
 
@@ -197,9 +197,6 @@ async function onboarding(step) {
           if (error) throw error;
           S.user = data.user;
         }
-        const rows = Object.entries(c).map(([kind, granted]) => ({ user_id: S.user.id, kind, granted, version: VERSION }));
-        const { error } = await sb.from('consents').upsert(rows, { onConflict: 'user_id,kind' });
-        if (error) throw error;
         onboarding('nick');
       } catch (e) {
         console.error(e);
@@ -226,6 +223,10 @@ async function onboarding(step) {
         if (error.code === '23505' && /nickname/.test(error.message)) { $('#nerr').innerHTML = `<div class="err">${t('onb_nick_taken')}</div>`; if (teen) $('#nick').value = randomNick(); return; }
         if (error.code !== '23505') { $('#nerr').innerHTML = `<div class="err">${t('st_error')}</div>`; return; }
       }
+      // consents can only be saved once the profile exists
+      const rows = Object.entries(OB.consents).map(([kind, granted]) => ({ user_id: S.user.id, kind, granted, version: VERSION }));
+      const { error: cErr } = await sb.from('consents').upsert(rows, { onConflict: 'user_id,kind' });
+      if (cErr) { $('#next').disabled = false; $('#nerr').innerHTML = `<div class="err">${t('st_error')}</div>`; return; }
       onboarding('route');
     };
   } else if (s === 'route') {
